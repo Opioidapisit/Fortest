@@ -219,8 +219,267 @@
         // 3. COMPONENTS
         // ======================================================================
 
-        // --- I. Referral Form Print View (SPSR Template - NEW) ---
-        const ReferralPrintView = ({ caseData, onHide, onPostPrint }) => {
+        // --- H. Referral Form Component (SPSR Report) ---
+        const ReferralForm = ({ onCancel, onSendReport }) => {
+            // Initial data structure matching new requirements
+            const [formData, setFormData] = useState({
+                pharmacy_name: 'ร้านยาคลินิคยา มอ ออ', 
+                pharmacy_address: '', 
+                pharmacy_tel: '', 
+                pharmacist_name: '',
+                license_no: '',
+                
+                patient_name: '',
+                cid: '',
+                gender: 'ชาย',
+                age: '',
+                address: '',
+                tel: '',
+                health_scheme: 'UC',
+                reason_for_referral: 'further investigation/management',
+                
+                drug_review: '',
+                chief_complaints: '',
+                history_of_illness: '',
+                chronic_disease: '',
+                drug_allergy: '',
+                additional_info: '',
+                problem_found: '',
+
+                // Checkboxes for initial action
+                initial_treatment: [],
+                treatment_note: '',
+                advice_note: '',
+                other_note: ''
+            });
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const handleChange = (e) => {
+                const { name, value, type, checked } = e.target;
+                
+                if (type === 'checkbox') {
+                    setFormData(prev => {
+                        const updated = checked
+                            ? [...new Set([...prev.initial_treatment, name])]
+                            : prev.initial_treatment.filter(n => n !== name);
+                        return { ...prev, initial_treatment: updated };
+                    });
+                } else {
+                    setFormData(prev => ({ ...prev, [name]: value }));
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                // FIX: Check for patient_name and pharmacist_name
+                if (!formData.patient_name || !formData.pharmacist_name) {
+                    alert('กรุณากรอกชื่อผู้ป่วยและเภสัชกรผู้ส่งต่อ');
+                    return;
+                }
+                setIsSubmitting(true);
+                // Report Type is 'referral'
+                onSendReport(formData, 'referral') 
+                    .finally(() => setIsSubmitting(false));
+            };
+
+            return (
+                <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                    {/* --- Back Button --- */}
+                    <button onClick={onCancel}
+                            className="text-indigo-600 hover:text-indigo-800 text-sm font-semibold flex items-center mb-4">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        กลับหน้าหลัก
+                    </button>
+                    
+                    <div className="bg-white p-8 rounded-xl shadow-lg">
+                        <h1 className="text-2xl font-semibold text-gray-900 mb-6 border-b pb-2">
+                            แบบฟอร์มส่งต่อผู้ป่วย (สปสช.)
+                        </h1>
+                        
+                        <form onSubmit={handleSubmit}>
+                            {/* --- ส่วนหัว: ข้อมูลผู้ส่งต่อ --- */}
+                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2 mt-6">ส่วนหัว: ข้อมูลผู้ส่งต่อ</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">เภสัชกรผู้ส่งต่อ</label>
+                                    <input type="text" name="pharmacist_name" value={formData.pharmacist_name} onChange={handleChange} required
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ร้านยา</label>
+                                    <input type="text" name="pharmacy_name" value={formData.pharmacy_name} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">เลขประกอบวิชาชีพ</label>
+                                    <input type="text" name="license_no" value={formData.license_no} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">เบอร์โทรศัพท์ร้านยา</label>
+                                    <input type="tel" name="pharmacy_tel" value={formData.pharmacy_tel} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">ที่อยู่ร้านยา</label>
+                                    <textarea name="pharmacy_address" rows="2" value={formData.pharmacy_address} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                
+                            </div>
+
+                            {/* --- ส่วนที่ 1: ข้อมูลทั่วไป --- */}
+                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2 mt-6">ส่วนที่ 1: ข้อมูลทั่วไป</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div className="md:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700">ชื่อผู้ป่วย</label>
+                                    <input type="text" name="patient_name" value={formData.patient_name} onChange={handleChange} required
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">เลขประจำตัวประชาชน</label>
+                                    <input type="text" name="cid" value={formData.cid} onChange={handleChange} maxLength="13"
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">เพศ</label>
+                                    <select name="gender" value={formData.gender} onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5">
+                                        <option value="ชาย">ชาย</option>
+                                        <option value="หญิง">หญิง</option>
+                                        <option value="อื่นๆ">อื่นๆ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">อายุ</label>
+                                    <input type="number" name="age" value={formData.age} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">ที่อยู่</label>
+                                    <input type="text" name="address" value={formData.address} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">โทรศัพท์</label>
+                                    <input type="tel" name="tel" value={formData.tel} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                </div>
+                                
+                                <div className="md:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700">สิทธิการรักษา</label>
+                                    <select name="health_scheme" value={formData.health_scheme} onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5">
+                                        <option value="UC">UC</option>
+                                        <option value="ข้าราชการ">ข้าราชการ</option>
+                                        <option value="ประกันสังคม">ประกันสังคม</option>
+                                    </select>
+                                </div>
+
+                                <div className="md:col-span-3">
+                                    <label className="block text-sm font-medium text-gray-700">เหตุผลในการส่งต่อ</label>
+                                    <select name="reason_for_referral" value={formData.reason_for_referral} onChange={handleChange}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5">
+                                        <option value="further investigation/management">further investigation/management</option>
+                                        <option value="Drug-related problem">Drug-related problem</option>
+                                        <option value="Loss of follow-up">Loss of follow-up</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {/* --- ส่วนที่ 2: รายละเอียดการส่งต่อ --- */}
+                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2 mt-6">ส่วนที่ 2: รายละเอียดการส่งต่อ</h2>
+                            <div className="grid grid-cols-1 gap-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">การทบทวนรายการยา</label>
+                                    <textarea name="drug_review" rows="2" value={formData.drug_review} onChange={handleChange}
+                                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">อาการสำคัญ</label>
+                                    <textarea name="chief_complaints" rows="2" value={formData.chief_complaints} onChange={handleChange} required
+                                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ประวัติการเจ็บป่วย</label>
+                                    <textarea name="history_of_illness" rows="3" value={formData.history_of_illness} onChange={handleChange}
+                                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"></textarea>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">โรคประจำตัว</label>
+                                        <input type="text" name="chronic_disease" value={formData.chronic_disease} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">ประวัติแพ้ยา</label>
+                                        <input type="text" name="drug_allergy" value={formData.drug_allergy} onChange={handleChange}
+                                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"/>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ข้อมูลเพิ่มเติม</label>
+                                    <textarea name="additional_info" rows="2" value={formData.additional_info} onChange={handleChange}
+                                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ปัญหาที่พบ</label>
+                                    <textarea name="problem_found" rows="2" value={formData.problem_found} onChange={handleChange}
+                                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2.5"></textarea>
+                                </div>
+                            </div>
+
+                            {/* --- ส่วนที่ 3: การดำเนินการเบื้องต้น (Checkboxes) --- */}
+                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2 mt-6">ส่วนที่ 3: การดำเนินการเบื้องต้น</h2>
+                            <div className="grid grid-cols-1 gap-4 mb-6 bg-gray-50 p-4 rounded-md">
+                                {/* Checkbox 1 */}
+                                <div className="flex items-start">
+                                    <input type="checkbox" name="give_treatment" checked={formData.initial_treatment.includes('give_treatment')} onChange={handleChange}
+                                           className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 mr-3"/>
+                                    <div className="flex-grow">
+                                        <label className="block text-sm font-medium text-gray-700">ให้การรักษาเบื้องต้น</label>
+                                        <textarea name="treatment_note" rows="1" value={formData.treatment_note} onChange={handleChange} placeholder="ระบุการรักษา..."
+                                                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-1.5 text-sm"/>
+                                    </div>
+                                </div>
+                                {/* Checkbox 2 */}
+                                <div className="flex items-start">
+                                    <input type="checkbox" name="give_advice" checked={formData.initial_treatment.includes('give_advice')} onChange={handleChange}
+                                           className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 mr-3"/>
+                                    <div className="flex-grow">
+                                        <label className="block text-sm font-medium text-gray-700">ให้คำแนะนำการใช้ยา/การดูแลตัวเอง</label>
+                                        <textarea name="advice_note" rows="1" value={formData.advice_note} onChange={handleChange} placeholder="ระบุคำแนะนำ..."
+                                                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-1.5 text-sm"/>
+                                    </div>
+                                </div>
+                                {/* Checkbox 3 */}
+                                <div className="flex items-start">
+                                    <input type="checkbox" name="other_action" checked={formData.initial_treatment.includes('other_action')} onChange={handleChange}
+                                           className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 mr-3"/>
+                                    <div className="flex-grow">
+                                        <label className="block text-sm font-medium text-gray-700">อื่นๆ</label>
+                                        <textarea name="other_note" rows="1" value={formData.other_note} onChange={handleChange} placeholder="ระบุรายละเอียดอื่นๆ..."
+                                                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-1.5 text-sm"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* --- Action Button --- */}
+                            <button type="submit" 
+                                    disabled={isSubmitting}
+                                    className={`w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out mt-6 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                <span className="text-lg">📩</span> {isSubmitting ? 'กำลังสร้างรายงาน...' : 'สร้างใบส่งต่อและอัปโหลด'}
+                            </button>
+                        </form>
+                    </div>
+                </main>
+            );
+        };
+
+
+        // --- F. Report Print View (CORS-FREE PRINTING) ---
+        const ReportPrintView = ({ caseData, onHide, onPostPrint }) => {
             
             useEffect(() => {
                 const timer = setTimeout(() => {
