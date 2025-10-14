@@ -185,7 +185,8 @@
 
         const useCaseData = (db, isAuthReady) => {
             const [cases, setCases] = useState([]);
-            const [loading, setLoading] = true);
+            // FIX: Corrected syntax error from previous version (removed = true)
+            const [loading, setLoading] = useState(true);
 
             useEffect(() => {
                 if (!db || !isAuthReady || !db.collection) return;
@@ -219,7 +220,7 @@
         // 3. COMPONENTS
         // ======================================================================
 
-        // --- G. Referral Form Component (SPSR Report) ---
+        // --- H. Referral Form Component (SPSR Report) ---
         const ReferralForm = ({ onCancel, onSendReport }) => {
             // Initial data structure matching new requirements
             const [formData, setFormData] = useState({
@@ -278,7 +279,6 @@
                 }
                 setIsSubmitting(true);
                 // Report Type is 'referral'
-                // NOTE: We pass the data to onSendReport (which now handles the PRINT logic)
                 onSendReport(formData, 'referral') 
                     .finally(() => setIsSubmitting(false));
             };
@@ -1136,7 +1136,7 @@
 
             // --- Function to handle Referral/ADR submission (Uses APPS_SCRIPT_REFERRAL_URL) ---
             const handleReportSubmission = async (reportData, reportType) => {
-                // Since Apps Script failed repeatedly, we skip the fetch and go straight to print view.
+                // We use the Print View component (ReferralPrintView) which now renders the SPSR form layout
                 
                 setIsSaving(true);
                 
@@ -1245,7 +1245,7 @@
                                 setView('dashboard'); 
                                 setCurrentCase(null); 
                                 // Show final alert
-                                alert(`เสร็จสิ้น อย่าลืมอัพโหลดเคสต่อไป`);
+                                alert(`เสร็จสิ้น อย่าลืมอัปโหลดเคสต่อไป`);
                             }} 
                         />
                     )}
