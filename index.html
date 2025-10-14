@@ -30,6 +30,14 @@
             }
             .no-print { display: none !important; }
             .report-table td { page-break-inside: avoid; }
+            .report-table h2 { margin-top: 10px !important; }
+            .report-table .header-row { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            .report-table .border-black { border-color: #000 !important; }
+            
+            /* Print Specific Table Styling */
+            .spsr-table td { border-color: #000 !important; padding: 6px; }
+            .spsr-table h3 { font-size: 11pt; margin-bottom: 5px; }
+            .spsr-table p { margin: 0; font-size: 10pt; }
         }
     </style>
 </head>
@@ -66,8 +74,10 @@
         
         // --- APPS SCRIPT URLS ---
         const APPS_SCRIPT_RECORD_URL = 'https://script.google.com/macros/s/AKfycbxvb717wxqHcUZVOi8xMSs-ICDa7DydwtDsfwHLMoF-F1V_eeCyI89ZDd19uzkP3rifeg/exec'; 
-        const APPS_SCRIPT_REFERRAL_URL = 'https://script.google.com/macros/s/AKfycbz_cJkII8m_8hRW4Ez1_6-8TPjsxdkyy8DFW1-tL3XoPVUYQslxR8obYv2yWsPkg6Yw/exec'; 
+        const APPS_SCRIPT_REFERRAL_URL = 'YOUR_REFERRAL_APPS_SCRIPT_URL_HERE'; // No longer used for fetch, but kept for visibility
         const DRIVE_UPLOAD_FOLDER_URL = 'https://drive.google.com/drive/u/0/folders/1LXVLw5lorx7lrD4mfbTw39BscTIVdNOd';
+        const LOGO_BASE_URL = 'https://opioidapisit.github.io/head%20refer%20form.jpg'; // URL of the uploaded image
+
         
         // --- Constants ---
         const branchMap = {
@@ -175,7 +185,7 @@
 
         const useCaseData = (db, isAuthReady) => {
             const [cases, setCases] = useState([]);
-            const [loading, setLoading] = useState(true);
+            const [loading, setLoading] = true);
 
             useEffect(() => {
                 if (!db || !isAuthReady || !db.collection) return;
@@ -209,7 +219,7 @@
         // 3. COMPONENTS
         // ======================================================================
 
-        // --- H. Referral Form Component (SPSR Report) ---
+        // --- G. Referral Form Component (SPSR Report) ---
         const ReferralForm = ({ onCancel, onSendReport }) => {
             // Initial data structure matching new requirements
             const [formData, setFormData] = useState({
@@ -268,6 +278,7 @@
                 }
                 setIsSubmitting(true);
                 // Report Type is 'referral'
+                // NOTE: We pass the data to onSendReport (which now handles the PRINT logic)
                 onSendReport(formData, 'referral') 
                     .finally(() => setIsSubmitting(false));
             };
@@ -427,7 +438,7 @@
                                 <div className="flex items-start">
                                     <input type="checkbox" name="give_treatment" checked={formData.initial_treatment.includes('give_treatment')} onChange={handleChange}
                                            className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 mr-3"/>
-                                    <div className-="flex-grow">
+                                    <div className="flex-grow">
                                         <label className="block text-sm font-medium text-gray-700">ให้การรักษาเบื้องต้น</label>
                                         <textarea name="treatment_note" rows="1" value={formData.treatment_note} onChange={handleChange} placeholder="ระบุการรักษา..."
                                                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-1.5 text-sm"/>
@@ -535,7 +546,7 @@
                                 <td className="p-2 border border-gray-500" style={{width: '25%'}}>
                                     ส่วนสูง: {caseData.height || '-'} ซม.
                                 </td>
-                                <td className="p-2 border border-gray-500" colSpan="2">
+                                <td colSpan="2" className="p-2 border border-gray-500">
                                     อายุ: {caseData.age || '-'} ปี
                                 </td>
                             </tr>
@@ -769,7 +780,7 @@
                             </div>
                             
                             {/* --- 3. รายละเอียดเคสและการรักษา --- */}
-                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">3. รายละเอียดเคสและการรักษา</h2>
+                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2 mt-6">3. รายละเอียดเคสและการรักษา</h2>
                             <div className="grid grid-cols-1 gap-6 mb-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">อาการสำคัญ (เลือกได้มากกว่า 1) <span className="text-red-500">*</span></label>
@@ -809,7 +820,7 @@
                             </div>
 
                             {/* --- 4. การติดตามอาการ --- */}
-                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">4. การติดตามอาการ</h2>
+                            <h2 className="text-xl font-bold mb-4 text-indigo-700 border-b pb-2 mt-6">4. การติดตามอาการ</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">วันที่ติดตามอาการ</label>
@@ -1123,37 +1134,20 @@
                 }
             };
 
-            // --- Function to handle Referral/ADR submission ---
+            // --- Function to handle Referral/ADR submission (Uses APPS_SCRIPT_REFERRAL_URL) ---
             const handleReportSubmission = async (reportData, reportType) => {
-                if (APPS_SCRIPT_REFERRAL_URL.includes('YOUR_REFERRAL_APPS_SCRIPT_URL_HERE')) {
-                    alert('⚠️ ไม่สามารถสร้างรายงานได้: กรุณาตั้งค่า APPS_SCRIPT_REFERRAL_URL');
-                    return;
-                }
+                // Since Apps Script failed repeatedly, we skip the fetch and go straight to print view.
                 
                 setIsSaving(true);
                 
                 try {
-                    const dataForScript = { ...reportData, reportType: reportType };
+                    // 1. Show Print View immediately
+                    const updatedReportData = { ...reportData, timestamp: new Date().toLocaleDateString('th-TH') };
+                    setCurrentCase(updatedReportData); // Use setCurrentCase to pass data to print view
                     
-                    const response = await fetch(APPS_SCRIPT_REFERRAL_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(dataForScript)
-                    });
+                    // 2. Set view to show the Referral Print component
+                    setView('referral_print'); // Use a new dedicated view state
 
-                    if (!response.ok) throw new Error('Referral API Server Error');
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        alert(`✅ สร้างรายงานสำเร็จ! ไฟล์ถูกอัปโหลดขึ้น Drive แล้ว:\n\n${result.fileUrl}`);
-                        setView('dashboard');
-                    } else {
-                        throw new Error(result.message || 'Error generating report.');
-                    }
-                    
                 } catch (e) {
                     console.error("Referral Report Error:", e);
                     alert(`แจ้งเตือน: สร้างรายงาน ${reportType} ล้มเหลว (${e.message})`);
@@ -1197,6 +1191,19 @@
                     <ReferralForm 
                         onCancel={() => setView('dashboard')} 
                         onSendReport={handleReportSubmission}
+                    />
+                );
+            } else if (view === 'referral_print' && currentCase) {
+                // New view for SPSR print preview
+                content = (
+                    <ReferralPrintView 
+                        caseData={currentCase} 
+                        onHide={() => {}} 
+                        onPostPrint={() => { 
+                            setView('dashboard'); 
+                            setCurrentCase(null); 
+                            alert(`เสร็จสิ้น อย่าลืมอัปโหลดเคสต่อไป`);
+                        }} 
                     />
                 );
             } else { // 'dashboard' view
@@ -1271,5 +1278,3 @@
     </script>
 </body>
 </html>
-
-
