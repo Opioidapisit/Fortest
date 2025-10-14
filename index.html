@@ -66,8 +66,7 @@
         
         // --- APPS SCRIPT URLS ---
         const APPS_SCRIPT_RECORD_URL = 'https://script.google.com/macros/s/AKfycbxvb717wxqHcUZVOi8xMSs-ICDa7DydwtDsfwHLMoF-F1V_eeCyI89ZDd19uzkP3rifeg/exec'; 
-        // !!! URL สำหรับสร้างใบส่งต่อผู้ป่วย (Referral) !!!
-        const APPS_SCRIPT_REFERRAL_URL = 'https://script.google.com/macros/s/AKfycbxaYCm_aGNMqCLbRtlGp2fZ_MEszzREEvp4dPEt4jYoWE9NQuNCVf3ZCt9SD-Z-_HSz/exec'; 
+        const APPS_SCRIPT_REFERRAL_URL = 'https://script.google.com/macros/s/AKfycbxvb717wxqHcUZVOi8xMSs-ICDa7DydwtDsfwHLMoF-F1V_eeCyI89ZDd19uzkP3rifeg/exec'; 
         const DRIVE_UPLOAD_FOLDER_URL = 'https://drive.google.com/drive/u/0/folders/1LXVLw5lorx7lrD4mfbTw39BscTIVdNOd';
         
         // --- Constants ---
@@ -262,7 +261,8 @@
 
             const handleSubmit = (e) => {
                 e.preventDefault();
-                if (!formData.name || !formData.pharmacist_name) {
+                // FIX: Check for patient_name and pharmacist_name
+                if (!formData.patient_name || !formData.pharmacist_name) {
                     alert('กรุณากรอกชื่อผู้ป่วยและเภสัชกรผู้ส่งต่อ');
                     return;
                 }
@@ -427,7 +427,7 @@
                                 <div className="flex items-start">
                                     <input type="checkbox" name="give_treatment" checked={formData.initial_treatment.includes('give_treatment')} onChange={handleChange}
                                            className="mt-1 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 mr-3"/>
-                                    <div className="flex-grow">
+                                    <div className-="flex-grow">
                                         <label className="block text-sm font-medium text-gray-700">ให้การรักษาเบื้องต้น</label>
                                         <textarea name="treatment_note" rows="1" value={formData.treatment_note} onChange={handleChange} placeholder="ระบุการรักษา..."
                                                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-1.5 text-sm"/>
@@ -1065,7 +1065,6 @@
                     
                     if (shouldPrint) {
                         // 2. Trigger Apps Script Record/PDF (for Google Sheet update/Drive upload)
-                        // This sends data to the Sheet asynchronously
                         triggerAppsScriptRecord({ ...caseData, id: docId, status: 'ปิดเคสแล้ว' }, isEdit);
                         
                         // 3. Show Print View immediately
