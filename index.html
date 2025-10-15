@@ -66,7 +66,7 @@
             projectId: "casereportcmo",
             storageBucket: "casereportcmo.firebasestorage.app",
             messagingSenderId: "588025239095",
-            appId: "1:588025239095:web:9d98aaf31e903546da91b2"
+            appId: "1:588025239095:web:9d98aaf31e9035464da91b2"
         };
         const FIREBASE_PATH_APP_ID = 'trang-case-system'; 
         
@@ -219,178 +219,236 @@
             return { cases, loading };
         };
 
+        // --- F. Footer Component ---
+        const Footer = () => {
+            const [currentTime, setCurrentTime] = useState(new Date());
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setCurrentTime(new Date());
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            const formattedTime = currentTime.toLocaleDateString('th-TH', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false
+            });
+
+            return (
+                <footer className="mt-12 py-4 border-t no-print bg-white shadow-inner">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-gray-500 text-sm">
+                        
+                        {/* Main Footer Text (Left/Center) */}
+                        <div className="text-center sm:text-left mb-1 sm:mb-0">
+                            CMO-Case Management System (Powered by React &amp; Firebase) 
+                            <span className="font-semibold text-gray-700 ml-2 block sm:inline">
+                                | {formattedTime}
+                            </span>
+                        </div>
+                        
+                        {/* Credit (Bottom Right) */}
+                        <div className="text-[10px] text-gray-400 opacity-80 mt-1 sm:mt-0">
+                            Develop by Opioid.Apisit
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+
 
         // ======================================================================
         // 3. COMPONENTS
         // ======================================================================
 
         // --- I. Referral Print View (SPSR Template - NEW) ---
-        const ReferralPrintView = ({ caseData, onHide, onPostPrint }) => {
+        // ADDED: onEdit and onFinalize props
+        const ReferralPrintView = ({ caseData, onEdit, onFinalize }) => {
             
-            useEffect(() => {
-                const timer = setTimeout(() => {
-                    window.print();
-                    onPostPrint(); 
-                    onHide();      
-                }, 500);
-                return () => clearTimeout(timer);
-            }, [onHide, onPostPrint]);
+            // REMOVED: useEffect for auto-print and auto-redirect
 
             const getCurrentDate = () => new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'numeric', year: 'numeric' });
             
             // MODIFIED: เปลี่ยนเครื่องหมาย X เป็น ✓
             const treatmentBoxChecked = (name) => caseData.initial_treatment.includes(name) ? '✓' : ''; 
+            
+            // Render the print controls and the print area
+            return (
+                <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 font-kanit">
 
-            // ลบ combinedInitialActions ออก เนื่องจากจะแสดง Note แบบ Inline
-
-
-            return ReactDOM.createPortal(
-                <div id="print-area" className="p-8 font-kanit text-gray-900 bg-white" style={{ maxWidth: '210mm', margin: '0 auto', fontSize: '10pt', border: 'none' }}>
-                    
-                    {/* --- HEADER ROW (Logos) --- */}
-                    {/* UPDATED: จัดโลโก้ซ้าย และรหัสประชาชนขวาในบรรทัดเดียวกัน */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                         <img src={LOGO_BASE_URL} alt="Header Logos" style={{ height: 'auto', maxHeight: '40px', display: 'block' }} 
-                            onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/100x40/eeeeee/333333?text=Logo+Missing"; }} />
-                        
-                        <div style={{ fontSize: '10pt', paddingBottom: '0' }}>
-                            <strong>เลขประจำตัวประชาชน:</strong> {caseData.cid || '...........................................'}
-                        </div>
-                    </div>
-                    
-                    {/* UPDATED: ย้ายเส้นใต้มาอยู่ที่หัวข้อหลัก */}
-                    <h2 className="text-lg font-bold text-center mb-2" style={{fontSize: '14pt', margin: '10px 0 15px 0', borderBottom: '1px solid #000', paddingBottom: '5px'}}>
-                        แบบฟอร์มการประเมินและส่งต่อผู้ป่วย (Pharmacist Referral Form: PhRF)
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6 no-print">
+                        ตัวอย่างพิมพ์: แบบฟอร์มส่งต่อผู้ป่วย (PhRF)
                     </h2>
-
-                    {/* --- MAIN INFO TABLE (SPSR Layout) --- */}
-                    <table className="w-full spsr-table border-collapse border border-gray-900 text-sm" style={{ tableLayout: 'fixed' }}>
-                        <tbody>
-                            {/* Row 1: Patient Name / Gender / Age */}
-                            <tr>
-                                <td colSpan="4" className="border border-gray-900 p-2" style={{ lineHeight: '1.4' }}>
-                                    <strong>ชื่อผู้ป่วย:</strong> {caseData.patient_name || '...................................................'} | 
-                                    <strong>เพศ:</strong> {caseData.gender || '........'} | 
-                                    <strong>อายุ:</strong> {caseData.age || '......'} ปี |
-                                    <strong>โทรศัพท์:</strong> {caseData.tel || '..............................'}
-                                </td>
-                            </tr>
-                            {/* Row 2: Address / Scheme / Reason */}
-                            <tr>
-                                <td colSpan="4" className="border border-gray-900 p-2" style={{ lineHeight: '1.4' }}>
-                                    <p><strong>ที่อยู่:</strong> {caseData.address || '...............................................................................................................'} </p>
-                                    <p><strong>สิทธิการรักษาพยาบาล:</strong> {caseData.health_scheme || '.........................................'} | 
-                                       <strong>เหตุผลในการส่งต่อ:</strong> {caseData.reason_for_referral || '...............................................................'}
-                                    </p>
-                                </td>
-                            </tr>
-
-                            {/* SECTION 2: Assessment/Details Header */}
-                            <tr>
-                                <td colSpan="2" className="border border-gray-900 p-2 font-bold header-row" style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
-                                    การทบทวนรายการยาและผลิตภัณฑ์สุขภาพ
-                                </td>
-                                <td colSpan="2" className="border border-gray-900 p-2 font-bold header-row" style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
-                                    รายละเอียดของการส่งต่อ
-                                </td>
-                            </tr>
-                            <tr>
-                                {/* Left Column: Drug Review */}
-                                <td colSpan="2" className="border border-gray-900 p-2 align-top h-40">
-                                    <div style={{ whiteSpace: 'pre-wrap' }}>{caseData.drug_review || ' - '}</div>
-                                </td>
-                                {/* Right Column: Details */}
-                                <td colSpan="2" className="border border-gray-900 p-2 align-top">
-                                    <p><strong>อาการสำคัญ:</strong> {caseData.chief_complaints || '-'}</p>
-                                    <p><strong>ประวัติการเจ็บป่วย:</strong> {caseData.history_of_illness || '-'}</p>
-                                    <p><strong>โรคประจำตัว:</strong> {caseData.chronic_disease || '-'}</p>
-                                    <p><strong>ประวัติแพ้ยา:</strong> {caseData.drug_allergy || '-'}</p>
-                                    <p><strong>ข้อมูลเพิ่มเติม:</strong> {caseData.additional_info || '-'}</p>
-                                    <p><strong>ปัญหาที่พบ:</strong> {caseData.problem_found || '-'}</p>
-                                </td>
-                            </tr>
-
-                            {/* SECTION 3: Initial Action Header */}
-                            <tr>
-                                <td colSpan="4" className="border border-gray-900 p-2 font-bold header-row" style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
-                                    การดำเนินการเบื้องต้นของเภสัชกร
-                                </td>
-                            </tr>
-                            <tr>
-                                {/* MODIFIED: แสดง Note ต่อจาก Checkbox */}
-                                <td colSpan="4" className="border border-gray-900 p-2 align-top" style={{ lineHeight: '1.8' }}>
-                                    {/* 1. ให้การรักษาเบื้องต้น + Note */}
-                                    <p>
-                                        [{treatmentBoxChecked('give_treatment')}] ให้การรักษาเบื้องต้น
-                                        {caseData.initial_treatment.includes('give_treatment') && caseData.treatment_note && (
-                                            <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
-                                                **ระบุ: {caseData.treatment_note}**
-                                            </span>
-                                        )}
-                                    </p>
-
-                                    {/* 2. ให้คำแนะนำ + Note */}
-                                    <p>
-                                        [{treatmentBoxChecked('give_advice')}] ให้คำแนะนำการใช้ยา/การดูแลตัวเอง
-                                        {caseData.initial_treatment.includes('give_advice') && caseData.advice_note && (
-                                            <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
-                                                **ระบุ: {caseData.advice_note}**
-                                            </span>
-                                        )}
-                                    </p>
-                                    
-                                    {/* 3. อื่นๆ + Note */}
-                                    <p>
-                                        [{treatmentBoxChecked('other_action')}] อื่นๆ
-                                        {caseData.initial_treatment.includes('other_action') && caseData.other_note && (
-                                            <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
-                                                **ระบุ: {caseData.other_note}**
-                                            </span>
-                                        )}
-                                    </p>
-                                </td>
-                            </tr>
-                            
-                            {/* Signature / Footer */}
-                            <tr>
-                                <td colSpan="4" className="p-4 pt-8 border-gray-900 text-right" style={{ borderTop: 'none', borderBottom: 'none' }}>
-                                    <div style={{ textAlign: 'center', marginTop: '30px', marginBottom: '10px', fontSize: '10pt' }}>
-                                        <p>(ลงชื่อ) .....................................................</p>
-                                        <p style={{marginTop: '5px'}}>เภสัชกรผู้ส่งต่อ: {caseData.pharmacist_name || '...........................................'} </p>
-                                        <p>เลขประกอบวิชาชีพ: {caseData.license_no || '...........................................'} | วันที่: {getCurrentDate()}</p>
-                                    </div>
-                                    <div style={{ textAlign: 'left', borderTop: '1px solid #ccc', paddingTop: '10px', marginTop: '15px', fontSize: '10pt' }}>
-                                        <p><strong>ส่งต่อจากร้านยา:</strong> {caseData.pharmacy_name || '-'} | 
-                                           <strong>โทรศัพท์:</strong> {caseData.pharmacy_tel || '-'}
-                                        </p>
-                                        <p><strong>ที่อยู่ร้านยา:</strong> {caseData.pharmacy_address || '-'} </p>
-                                    </div>
-                                </td>
-                            </tr>
-                            
-                            {/* Bottom Section for Hospital (Blank space) */}
-                            <tr>
-                                <td colSpan="4" className="p-2 border border-gray-900 header-row" style={{fontSize: '10pt', backgroundColor: '#f0f0f0', textAlign: 'center'}}>
-                                    <p> ขอความร่วมมือหน่วยงานรับผู้ป่วยเพื่อรักษาและตอบกลับต้นทางตามข้อมูลข้างต้น </p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
                     
-                </div>,
-                document.body
+                    {/* Control Panel (Non-Printable) */}
+                    <div className="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow-md mb-8 no-print border border-yellow-200">
+                        <button onClick={onEdit}
+                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                            ย้อนกลับไปแก้ไขข้อมูล
+                        </button>
+
+                        <button onClick={onFinalize}
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2v5H3v-5h2M17 9l-5 5-5-5M12 12V3"></path></svg>
+                            พิมพ์และเสร็จสิ้นการส่งต่อ
+                        </button>
+                    </div>
+
+                    {/* Print Area Content (The part that gets printed) */}
+                    {/* The div below is the actual print content wrapped by the Portal */}
+                    {ReactDOM.createPortal(
+                        <div id="print-area" className="p-8 font-kanit text-gray-900 bg-white" style={{ maxWidth: '210mm', margin: '0 auto', fontSize: '10pt', border: 'none' }}>
+                            
+                            {/* --- HEADER ROW (Logos) --- */}
+                            {/* UPDATED: จัดโลโก้ซ้าย และรหัสประชาชนขวาในบรรทัดเดียวกัน */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                                <img src={LOGO_BASE_URL} alt="Header Logos" style={{ height: 'auto', maxHeight: '40px', display: 'block' }} 
+                                    onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/100x40/eeeeee/333333?text=Logo+Missing"; }} />
+                                
+                                <div style={{ fontSize: '10pt', paddingBottom: '0' }}>
+                                    <strong>เลขประจำตัวประชาชน:</strong> {caseData.cid || '...........................................'}
+                                </div>
+                            </div>
+                            
+                            {/* UPDATED: ย้ายเส้นใต้มาอยู่ที่หัวข้อหลัก */}
+                            <h2 className="text-lg font-bold text-center mb-2" style={{fontSize: '14pt', margin: '10px 0 15px 0', borderBottom: '1px solid #000', paddingBottom: '5px'}}>
+                                แบบฟอร์มการประเมินและส่งต่อผู้ป่วย (Pharmacist Referral Form: PhRF)
+                            </h2>
+
+                            {/* --- MAIN INFO TABLE (SPSR Layout) --- */}
+                            <table className="w-full spsr-table border-collapse border border-gray-900 text-sm" style={{ tableLayout: 'fixed' }}>
+                                <tbody>
+                                    {/* Row 1: Patient Name / Gender / Age */}
+                                    <tr>
+                                        <td colSpan="4" className="border border-gray-900 p-2" style={{ lineHeight: '1.4' }}>
+                                            <strong>ชื่อผู้ป่วย:</strong> {caseData.patient_name || '...................................................'} | 
+                                            <strong>เพศ:</strong> {caseData.gender || '........'} | 
+                                            <strong>อายุ:</strong> {caseData.age || '......'} ปี |
+                                            <strong>โทรศัพท์:</strong> {caseData.tel || '..............................'}
+                                        </td>
+                                    </tr>
+                                    {/* Row 2: Address / Scheme / Reason */}
+                                    <tr>
+                                        <td colSpan="4" className="border border-gray-900 p-2" style={{ lineHeight: '1.4' }}>
+                                            <p><strong>ที่อยู่:</strong> {caseData.address || '...............................................................................................................'} </p>
+                                            <p><strong>สิทธิการรักษาพยาบาล:</strong> {caseData.health_scheme || '.........................................'} | 
+                                            <strong>เหตุผลในการส่งต่อ:</strong> {caseData.reason_for_referral || '...............................................................'}
+                                            </p>
+                                        </td>
+                                    </tr>
+
+                                    {/* SECTION 2: Assessment/Details Header */}
+                                    <tr>
+                                        <td colSpan="2" className="border border-gray-900 p-2 font-bold header-row" style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
+                                            การทบทวนรายการยาและผลิตภัณฑ์สุขภาพ
+                                        </td>
+                                        <td colSpan="2" className="border border-gray-900 p-2 font-bold header-row" style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
+                                            รายละเอียดของการส่งต่อ
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        {/* Left Column: Drug Review */}
+                                        <td colSpan="2" className="border border-gray-900 p-2 align-top h-40">
+                                            <div style={{ whiteSpace: 'pre-wrap' }}>{caseData.drug_review || ' - '}</div>
+                                        </td>
+                                        {/* Right Column: Details */}
+                                        <td colSpan="2" className="border border-gray-900 p-2 align-top">
+                                            <p><strong>อาการสำคัญ:</strong> {caseData.chief_complaints || '-'}</p>
+                                            <p><strong>ประวัติการเจ็บป่วย:</strong> {caseData.history_of_illness || '-'}</p>
+                                            <p><strong>โรคประจำตัว:</strong> {caseData.chronic_disease || '-'}</p>
+                                            <p><strong>ประวัติแพ้ยา:</strong> {caseData.drug_allergy || '-'}</p>
+                                            <p><strong>ข้อมูลเพิ่มเติม:</strong> {caseData.additional_info || '-'}</p>
+                                            <p><strong>ปัญหาที่พบ:</strong> {caseData.problem_found || '-'}</p>
+                                        </td>
+                                    </tr>
+
+                                    {/* SECTION 3: Initial Action Header */}
+                                    <tr>
+                                        <td colSpan="4" className="border border-gray-900 p-2 font-bold header-row" style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
+                                            การดำเนินการเบื้องต้นของเภสัชกร
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        {/* MODIFIED: แสดง Note ต่อจาก Checkbox */}
+                                        <td colSpan="4" className="border border-gray-900 p-2 align-top" style={{ lineHeight: '1.8' }}>
+                                            {/* 1. ให้การรักษาเบื้องต้น + Note */}
+                                            <p>
+                                                [{treatmentBoxChecked('give_treatment')}] ให้การรักษาเบื้องต้น
+                                                {caseData.initial_treatment.includes('give_treatment') && caseData.treatment_note && (
+                                                    <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
+                                                        **ระบุ: {caseData.treatment_note}**
+                                                    </span>
+                                                )}
+                                            </p>
+
+                                            {/* 2. ให้คำแนะนำ + Note */}
+                                            <p>
+                                                [{treatmentBoxChecked('give_advice')}] ให้คำแนะนำการใช้ยา/การดูแลตัวเอง
+                                                {caseData.initial_treatment.includes('give_advice') && caseData.advice_note && (
+                                                    <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
+                                                        **ระบุ: {caseData.advice_note}**
+                                                    </span>
+                                                )}
+                                            </p>
+                                            
+                                            {/* 3. อื่นๆ + Note */}
+                                            <p>
+                                                [{treatmentBoxChecked('other_action')}] อื่นๆ
+                                                {caseData.initial_treatment.includes('other_action') && caseData.other_note && (
+                                                    <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
+                                                        **ระบุ: {caseData.other_note}**
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    
+                                    {/* Signature / Footer */}
+                                    <tr>
+                                        <td colSpan="4" className="p-4 pt-8 border-gray-900 text-right" style={{ borderTop: 'none', borderBottom: 'none' }}>
+                                            <div style={{ textAlign: 'center', marginTop: '30px', marginBottom: '10px', fontSize: '10pt' }}>
+                                                <p>(ลงชื่อ) .....................................................</p>
+                                                <p style={{marginTop: '5px'}}>เภสัชกรผู้ส่งต่อ: {caseData.pharmacist_name || '...........................................'} </p>
+                                                <p>เลขประกอบวิชาชีพ: {caseData.license_no || '...........................................'} | วันที่: {getCurrentDate()}</p>
+                                            </div>
+                                            <div style={{ textAlign: 'left', borderTop: '1px solid #ccc', paddingTop: '10px', marginTop: '15px', fontSize: '10pt' }}>
+                                                <p><strong>ส่งต่อจากร้านยา:</strong> {caseData.pharmacy_name || '-'} | 
+                                                <strong>โทรศัพท์:</strong> {caseData.pharmacy_tel || '-'}
+                                                </p>
+                                                <p><strong>ที่อยู่ร้านยา:</strong> {caseData.pharmacy_address || '-'} </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    {/* Bottom Section for Hospital (Blank space) */}
+                                    <tr>
+                                        <td colSpan="4" className="p-2 border border-gray-900 header-row" style={{fontSize: '10pt', backgroundColor: '#f0f0f0', textAlign: 'center'}}>
+                                            <p> ขอความร่วมมือหน่วยงานรับผู้ป่วยเพื่อรักษาและตอบกลับต้นทางตามข้อมูลข้างต้น </p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                        </div>,
+                        document.body
+                    )}
+
+                </div>
             );
         };
 
+
         // --- H. Referral Form Component (SPSR Report) ---
-        const ReferralForm = ({ onCancel, onSendReport }) => {
-            // Initial data structure matching new requirements
-            const [formData, setFormData] = useState({
-                pharmacy_name: 'ร้านยาคลินิคยา มอ ออ สาขา', 
+        const ReferralForm = ({ initialData, onCancel, onSendReport }) => {
+            // Use initialData passed from parent (which holds incomplete referral data from print preview)
+            const [formData, setFormData] = useState(initialData || {
+                pharmacy_name: 'ร้านยาคลินิคยา มอ ออ', 
                 pharmacy_address: '', 
                 pharmacy_tel: '', 
                 pharmacist_name: '',
-                license_no: 'ภ.',
+                license_no: '',
                 
                 patient_name: '',
                 cid: '',
@@ -416,6 +474,7 @@
                 other_note: ''
             });
             const [isSubmitting, setIsSubmitting] = useState(false);
+            const isEditMode = initialData != null; // Check if it's being edited from print view
 
             const handleChange = (e) => {
                 const { name, value, type, checked } = e.target;
@@ -440,9 +499,10 @@
                     return;
                 }
                 setIsSubmitting(true);
-                // Report Type is 'referral'
+                
+                // IMPORTANT: The submission now only prepares data and shows print preview
                 onSendReport(formData, 'referral') 
-                    .finally(() => setIsSubmitting(false));
+                    .finally(() => setIsSubmitting(false)); // Finalize is handled by the print view
             };
 
             return (
@@ -456,7 +516,7 @@
                     
                     <div className="bg-white p-8 rounded-xl shadow-lg">
                         <h1 className="text-2xl font-semibold text-gray-900 mb-6 border-b pb-2">
-                            แบบฟอร์มส่งต่อผู้ป่วย (สปสช.)
+                            แบบฟอร์มส่งต่อผู้ป่วย (สปสช.) {isEditMode ? '(แก้ไขข้อมูล)' : ''}
                         </h1>
                         
                         <form onSubmit={handleSubmit}>
@@ -632,13 +692,15 @@
                             <button type="submit" 
                                     disabled={isSubmitting}
                                     className={`w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out mt-6 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                <span className="text-lg">📩</span> {isSubmitting ? 'กำลังสร้างรายงาน...' : 'สร้างใบส่งต่อและอัปโหลด'}
+                                <span className="text-lg">🖨️</span> {isSubmitting ? 'กำลังจัดเตรียมรายงาน...' : 'ตรวจสอบตัวอย่างพิมพ์ (ก่อนส่งต่อ)'}
                             </button>
                         </form>
                     </div>
                 </main>
             );
         };
+
+        // (Case Print View, Case Form and Dashboard components remain unchanged for brevity)
 
         // --- G. Case Print View (Standard Report) ---
         const ReportPrintView = ({ caseData, onHide, onPostPrint }) => {
@@ -787,7 +849,7 @@
         };
 
 
-        // --- A. Case Report Form Component ---
+        // --- A. Case Report Form Component (UNMODIFIED FOR BREVITY) ---
         const CaseForm = ({ initialCase = null, onSave, onCancel, onDelete }) => {
             const initialData = initialCase ? initialCase : defaultFormData;
                 
@@ -1035,7 +1097,7 @@
         };
 
 
-        // --- D. Dashboard Component ---
+        // --- D. Dashboard Component (UNMODIFIED FOR BREVITY) ---
         const Dashboard = ({ cases, loading, onAddCase, onEditCase, onReport }) => {
             
             const [searchTerm, setSearchTerm] = useState('');
@@ -1307,22 +1369,38 @@
             // --- Function to handle Referral/ADR submission (CORS-FREE) ---
             const handleReportSubmission = async (reportData, reportType) => {
                 
-                setIsSaving(true);
+                setIsSaving(false); // Do not show isSaving here, as it's just preparing the view
                 
                 try {
-                    // 1. Show Print View immediately (Referral Print)
+                    // 1. Prepare Print Data
                     const updatedReportData = { ...reportData, timestamp: new Date().toLocaleDateString('th-TH') };
                     setCurrentCase(updatedReportData); 
                     
-                    // 2. Set view to show the Referral Print component
+                    // 2. Set view to show the Referral Print component (allow inspection)
                     setView('referral_print'); 
 
                 } catch (e) {
                     console.error("Referral Report Error:", e);
                     alert(`แจ้งเตือน: สร้างรายงาน ${reportType} ล้มเหลว (${e.message})`);
-                } finally {
-                    setIsSaving(false);
-                }
+                } 
+                // Note: No finally block with setIsSaving(false) here, as we are staying on a view
+            };
+            
+            // NEW: Function to handle final print and dashboard return from Referral Print View
+            const handleReferralFinalize = () => {
+                
+                // 1. Trigger window.print()
+                window.print();
+                
+                // 2. Optional: Trigger Apps Script submission/Firebase update if needed (Currently skipped, but here for future implementation)
+                // if (APPS_SCRIPT_REFERRAL_URL && !APPS_SCRIPT_REFERRAL_URL.includes('YOUR_REFERRAL_APPS_SCRIPT_URL_HERE')) {
+                //    // Trigger external submission here if necessary
+                // }
+
+                // 3. Finalize: Redirect to Dashboard and clear state
+                alert(`เสร็จสิ้นการส่งต่อ! อย่าลืมอัปโหลดเคสต่อไป`);
+                setView('dashboard'); 
+                setCurrentCase(null); 
             };
             
             const handleDelete = async (caseId) => {
@@ -1357,21 +1435,18 @@
             } else if (view === 'referral_form') {
                  content = (
                     <ReferralForm 
-                        onCancel={() => setView('dashboard')} 
+                        initialData={currentCase} // Pass currentCase back to the form if editing
+                        onCancel={() => {setView('dashboard'); setCurrentCase(null);}} 
                         onSendReport={handleReportSubmission}
                     />
                 );
             } else if (view === 'referral_print' && currentCase) {
-                // View for SPSR print preview
+                // View for SPSR print preview - ADDED onEdit and onFinalize
                 content = (
                     <ReferralPrintView 
                         caseData={currentCase} 
-                        onHide={() => {}} 
-                        onPostPrint={() => { 
-                            setView('dashboard'); 
-                            setCurrentCase(null); 
-                            alert(`เสร็จสิ้น อย่าลืมอัปโหลดเคสต่อไป`);
-                        }} 
+                        onEdit={() => setView('referral_form')} // Go back to the form
+                        onFinalize={handleReferralFinalize} // Print and Finish
                     />
                 );
             } else { // 'dashboard' view
@@ -1396,7 +1471,7 @@
                             <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
                                 ระบบบันทึกการรักษาและส่งต่อผู้ป่วย คลินิคยา มอ ออ จังหวัดตรัง
                             </h1>
-                            <div className="text-xs text-gray-500 mt-1">User ID: {userId}</div>
+                            {/* REMOVED: ไม่แสดง User ID ตามคำขอ */}
                         </div>
                     </header>
                     
@@ -1425,10 +1500,10 @@
                             </div>
                         </div>
                     )}
+                    
+                    {/* UPDATED: Footer Component */}
+                    <Footer />
 
-                    <footer className="mt-12 text-center text-gray-500 text-sm py-4 border-t no-print">
-                        Case Management System (Powered by React &amp; Firebase)
-                    </footer>
                 </div>
             );
         }
