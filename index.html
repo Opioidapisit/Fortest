@@ -19,17 +19,19 @@
         @media print {
             /* เนื้อหาส่วนแสดงผล (Visible View) จะถูกซ่อนเมื่อสั่งพิมพ์ */
             #view-area { display: none !important; }
+            /* ส่วนควบคุม/ไม่ต้องการพิมพ์ ถูกซ่อน */
+            .no-print { display: none !important; }
 
+            /* ส่วนที่ต้องการพิมพ์ (#view-area-content) จะแสดงผลเต็มหน้ากระดาษ */
             body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { 
+            #view-area-content, #view-area-content * { visibility: visible; }
+            #view-area-content { 
                 position: absolute; 
                 left: 0; top: 0; 
                 width: 100%; 
                 margin: 0;
                 padding: 1cm; /* A4 Margin */
             }
-            .no-print { display: none !important; }
             .report-table td { page-break-inside: avoid; }
             .report-table h2 { margin-top: 10px !important; }
             .report-table .header-row { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
@@ -61,6 +63,7 @@
         // ======================================================================
 
         const { useState, useEffect, useMemo } = React;
+        const ReactDOM = window.ReactDOM;
         
         // --- 1. FIREBASE CONFIGURATION (MANDATORY) ---
         const USER_FIREBASE_CONFIG = {
@@ -266,6 +269,7 @@
         // ======================================================================
 
         // Helper function to render the core body of the Referral Report (PhRF)
+        // This function returns the JSX structure, which can be used for both screen view and printing.
         const renderReportBody = (caseData, getCurrentDate, treatmentBoxChecked, elementId) => (
             <div id={elementId} className="p-8 font-kanit text-gray-900 bg-white" style={{ maxWidth: '210mm', margin: '0 auto', fontSize: '10pt', border: 'none' }}>
                             
@@ -338,11 +342,11 @@
                             </td>
                         </tr>
                         <tr>
-                            {/* MODIFIED: แสดง Note ต่อจาก Checkbox */}
+                            {/* MODIFIED: แสดง Note ต่อจาก Checkbox โดยใช้ '✓' แทน 'X' (สอดคล้องกับไฟล์ที่เคยแก้ไขให้) */}
                             <td colSpan="4" className="border border-gray-900 p-2 align-top" style={{ lineHeight: '1.8' }}>
                                 {/* 1. ให้การรักษาเบื้องต้น + Note */}
                                 <p>
-                                    [{treatmentBoxChecked('give_treatment')}] ให้การรักษาเบื้องต้น
+                                    [{treatmentBoxChecked('give_treatment') === '✓' ? '✓' : ''}] ให้การรักษาเบื้องต้น
                                     {caseData.initial_treatment.includes('give_treatment') && caseData.treatment_note && (
                                         <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
                                             **ระบุ: {caseData.treatment_note}**
@@ -352,7 +356,7 @@
 
                                 {/* 2. ให้คำแนะนำ + Note */}
                                 <p>
-                                    [{treatmentBoxChecked('give_advice')}] ให้คำแนะนำการใช้ยา/การดูแลตัวเอง
+                                    [{treatmentBoxChecked('give_advice') === '✓' ? '✓' : ''}] ให้คำแนะนำการใช้ยา/การดูแลตัวเอง
                                     {caseData.initial_treatment.includes('give_advice') && caseData.advice_note && (
                                         <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
                                             **ระบุ: {caseData.advice_note}**
@@ -362,7 +366,7 @@
                                 
                                 {/* 3. อื่นๆ + Note */}
                                 <p>
-                                    [{treatmentBoxChecked('other_action')}] อื่นๆ
+                                    [{treatmentBoxChecked('other_action') === '✓' ? '✓' : ''}] อื่นๆ
                                     {caseData.initial_treatment.includes('other_action') && caseData.other_note && (
                                         <span style={{ display: 'inline-block', marginLeft: '10px', fontWeight: 'normal' }}>
                                             **ระบุ: {caseData.other_note}**
@@ -408,6 +412,7 @@
             const getCurrentDate = () => new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'numeric', year: 'numeric' });
             
             // MODIFIED: เปลี่ยนเครื่องหมาย X เป็น ✓
+            // Note: In the fix.html content, treatmentBoxChecked returns 'X' or '', changing to '✓' to match the previous request logic.
             const treatmentBoxChecked = (name) => caseData.initial_treatment.includes(name) ? '✓' : ''; 
             
             // Render the print controls and the print area
@@ -420,11 +425,12 @@
                     
                     {/* 1. Visible Report Content (Takes up visual space in the flow) */}
                     <div id="view-area" className="no-print bg-white rounded-xl shadow-lg mb-8">
+                        {/* Pass 'view-area-content' ID to the visible report body */}
                         {renderReportBody(caseData, getCurrentDate, treatmentBoxChecked, 'view-area-content')}
                     </div>
                     
                     {/* 2. Control Panel (Now clearly below the visible report content) */}
-                    <div className="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow-md mt-8 no-print border border-yellow-200">
+                    <div className="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow-md mt-8 mb-12 no-print border border-yellow-200">
                         <button onClick={onEdit}
                                 className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
                             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -438,12 +444,10 @@
                         </button>
                     </div>
 
-                    {/* 3. Printable Report Content (Hidden on screen, exported via portal) */}
-                    {ReactDOM.createPortal(
-                        renderReportBody(caseData, getCurrentDate, treatmentBoxChecked, 'print-area'),
-                        document.body
-                    )}
-
+                    {/* 3. Printable Report Content: 
+                        REMOVED ReactDOM.createPortal call. The visible component in #view-area-content 
+                        is now directly used for printing via the @media print CSS rules. */}
+                    
                 </div>
             );
         };
@@ -709,10 +713,8 @@
             );
         };
 
-        // (Case Print View, Case Form and Dashboard components remain unchanged for brevity)
-
         // --- G. Case Print View (Standard Report) ---
-        // RENAMED ReportPrintView to StandardReportPrintView to fix redeclaration error.
+        // Retained for printing standard case reports
         const StandardReportPrintView = ({ caseData, onHide, onPostPrint }) => {
             
             // This component is used for printing the standard case report (from the CaseForm)
