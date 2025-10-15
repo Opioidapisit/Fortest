@@ -17,11 +17,9 @@
         }
         /* -- PRINT STYLES (for PDF generation) -- */
         @media print {
-            /* เนื้อหาส่วนแสดงผล (Visible View) จะถูกซ่อนเมื่อสั่งพิมพ์ */
-            #view-area { display: none !important; }
             /* ส่วนควบคุม/ไม่ต้องการพิมพ์ ถูกซ่อน */
             .no-print { display: none !important; }
-
+            
             /* ส่วนที่ต้องการพิมพ์ (#view-area-content) จะแสดงผลเต็มหน้ากระดาษ */
             body * { visibility: hidden; }
             #view-area-content, #view-area-content * { visibility: visible; }
@@ -412,7 +410,6 @@
             const getCurrentDate = () => new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'numeric', year: 'numeric' });
             
             // MODIFIED: เปลี่ยนเครื่องหมาย X เป็น ✓
-            // Note: In the fix.html content, treatmentBoxChecked returns 'X' or '', changing to '✓' to match the previous request logic.
             const treatmentBoxChecked = (name) => caseData.initial_treatment.includes(name) ? '✓' : ''; 
             
             // Render the print controls and the print area
@@ -424,7 +421,8 @@
                     </h2>
                     
                     {/* 1. Visible Report Content (Takes up visual space in the flow) */}
-                    <div id="view-area" className="no-print bg-white rounded-xl shadow-lg mb-8">
+                    {/* แก้ไข: ลบคลาส "no-print" ออกจาก #view-area เพื่อให้ส่วนนี้ไม่ถูกซ่อนเมื่อสั่งพิมพ์ */}
+                    <div id="view-area" className="bg-white rounded-xl shadow-lg mb-8">
                         {/* Pass 'view-area-content' ID to the visible report body */}
                         {renderReportBody(caseData, getCurrentDate, treatmentBoxChecked, 'view-area-content')}
                     </div>
@@ -444,9 +442,7 @@
                         </button>
                     </div>
 
-                    {/* 3. Printable Report Content: 
-                        REMOVED ReactDOM.createPortal call. The visible component in #view-area-content 
-                        is now directly used for printing via the @media print CSS rules. */}
+                    {/* 3. Printable Report Content: ไม่ต้องใช้ Portal แล้ว อาศัย CSS Media Query ในการซ่อน/แสดงผล */}
                     
                 </div>
             );
