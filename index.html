@@ -281,21 +281,6 @@
                         ตัวอย่างพิมพ์: แบบฟอร์มส่งต่อผู้ป่วย (PhRF)
                     </h2>
                     
-                    {/* Control Panel (Non-Printable) */}
-                    <div className="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow-md mb-8 no-print border border-yellow-200">
-                        <button onClick={onEdit}
-                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-                            ย้อนกลับไปแก้ไขข้อมูล
-                        </button>
-
-                        <button onClick={onFinalize}
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2v5H3v-5h2M17 9l-5 5-5-5M12 12V3"></path></svg>
-                            พิมพ์และเสร็จสิ้นการส่งต่อ
-                        </button>
-                    </div>
-
                     {/* Print Area Content (The part that gets printed) */}
                     {/* The div below is the actual print content wrapped by the Portal */}
                     {ReactDOM.createPortal(
@@ -434,6 +419,21 @@
                         </div>,
                         document.body
                     )}
+                    
+                    {/* Control Panel (Non-Printable) - MOVED TO BOTTOM */}
+                    <div className="flex justify-between items-center bg-yellow-50 p-4 rounded-xl shadow-md mt-8 no-print border border-yellow-200">
+                        <button onClick={onEdit}
+                                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                            ย้อนกลับไปแก้ไขข้อมูล
+                        </button>
+
+                        <button onClick={onFinalize}
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2v5H3v-5h2M17 9l-5 5-5-5M12 12V3"></path></svg>
+                            พิมพ์และเสร็จสิ้นการส่งต่อ
+                        </button>
+                    </div>
 
                 </div>
             );
