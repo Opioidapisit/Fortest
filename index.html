@@ -248,17 +248,18 @@
                 <div id="print-area" className="p-8 font-kanit text-gray-900 bg-white" style={{ maxWidth: '210mm', margin: '0 auto', fontSize: '10pt', border: 'none' }}>
                     
                     {/* --- HEADER ROW (Logos) --- */}
-                    {/* MODIFIED: ลด maxHeight และ marginBottom เพื่อขยับฟอร์มขึ้น */}
-                    <div style={{ textAlign: 'center', marginBottom: '5px' }}> 
-                         <img src={LOGO_BASE_URL} alt="Header Logos" style={{ width: '100%', height: 'auto', maxHeight: '50px', display: 'block', margin: '0 auto' }} 
-                            onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/700x50/eeeeee/333333?text=Logo+Image+Missing"; }} />
+                    {/* UPDATED: จัดโลโก้ซ้าย และรหัสประชาชนขวาในบรรทัดเดียวกัน */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                         <img src={LOGO_BASE_URL} alt="Header Logos" style={{ height: 'auto', maxHeight: '40px', display: 'block' }} 
+                            onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/100x40/eeeeee/333333?text=Logo+Missing"; }} />
+                        
+                        <div style={{ fontSize: '10pt', paddingBottom: '0' }}>
+                            <strong>เลขประจำตัวประชาชน:</strong> {caseData.cid || '...........................................'}
+                        </div>
                     </div>
                     
-                    <div style={{ textAlign: 'right', fontSize: '10pt', marginBottom: '10px', borderBottom: '1px solid #000', paddingBottom: '5px' }}>
-                         <strong>รหัสประจำตัวประชาชน:</strong> {caseData.cid || '...........................................'}
-                    </div>
-
-                    <h2 className="text-lg font-bold text-center mb-2" style={{fontSize: '14pt', margin: '0 0 10px 0'}}>
+                    {/* UPDATED: ย้ายเส้นใต้มาอยู่ที่หัวข้อหลัก */}
+                    <h2 className="text-lg font-bold text-center mb-2" style={{fontSize: '14pt', margin: '10px 0 15px 0', borderBottom: '1px solid #000', paddingBottom: '5px'}}>
                         แบบฟอร์มการประเมินและส่งต่อผู้ป่วย (Pharmacist Referral Form: PhRF)
                     </h2>
 
@@ -370,7 +371,7 @@
                             {/* Bottom Section for Hospital (Blank space) */}
                             <tr>
                                 <td colSpan="4" className="p-2 border border-gray-900 header-row" style={{fontSize: '10pt', backgroundColor: '#f0f0f0', textAlign: 'center'}}>
-                                    <p>ส่วนติดต่อกลับ (สำหรับ รพ./รพ.สต.)</p>
+                                    <p> ขอความร่วมมือหน่วยงานรับผู้ป่วยเพื่อรักษาและตอบกลับต้นทางตามข้อมูลข้างต้น </p>
                                 </td>
                             </tr>
                         </tbody>
@@ -385,11 +386,11 @@
         const ReferralForm = ({ onCancel, onSendReport }) => {
             // Initial data structure matching new requirements
             const [formData, setFormData] = useState({
-                pharmacy_name: 'ร้านยาคลินิคยา มอ ออ', 
+                pharmacy_name: 'ร้านยาคลินิคยา มอ ออ สาขา', 
                 pharmacy_address: '', 
                 pharmacy_tel: '', 
                 pharmacist_name: '',
-                license_no: '',
+                license_no: 'ภ.',
                 
                 patient_name: '',
                 cid: '',
